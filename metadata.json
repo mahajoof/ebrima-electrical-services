@@ -1,0 +1,6 @@
+{
+  "name": "Ebrima Electrical Services - The Gambia",
+  "description": "Professional electrical installation, repair, troubleshooting, and maintenance services. Based in Banjul, serving all towns and villages across The Gambia.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
