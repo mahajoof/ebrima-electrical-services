@@ -42,7 +42,7 @@ export const Footer: React.FC<FooterProps> = ({
   };
 
   const whatsappUrl = `https://wa.me/${business.whatsappRaw}?text=${encodeURIComponent(
-    'Hello Ebrima Electrical Services, I would like to get in touch regarding electrical services in Banjul.'
+    'Hello Ebrima Electrical Services, I would like to get in touch regarding electrical services in The Gambia.'
   )}`;
 
   return (
@@ -95,7 +95,7 @@ export const Footer: React.FC<FooterProps> = ({
             </div>
 
             <p className="text-xs text-slate-400 leading-relaxed">
-              Providing dependable electrical installations, repairs, troubleshooting, and routine maintenance for residential and commercial customers in Banjul and surrounding areas.
+              Providing dependable electrical installations, repairs, troubleshooting, and routine maintenance for residential and commercial customers across The Gambia.
             </p>
 
             <div className="space-y-2 pt-2 text-xs">

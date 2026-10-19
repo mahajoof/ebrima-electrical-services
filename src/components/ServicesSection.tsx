@@ -115,7 +115,14 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
                   <img
                     src={service.image}
                     alt={service.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 select-none"
+                    loading="lazy"
+                    onError={(e) => {
+                      if (e.currentTarget.src !== '/images/ebrima_electrical_hero_1792275168817.jpg') {
+                        e.currentTarget.src = '/images/ebrima_electrical_hero_1792275168817.jpg';
+                      }
+                    }}
+                    referrerPolicy="no-referrer"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-transparent" />
 

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useRef } from 'react';
+import React from 'react';
 import {
   Calendar,
   MessageCircle,
@@ -12,22 +12,17 @@ import {
   Zap,
   CheckCircle,
   Clock,
-  MapPin,
-  Camera,
-  Upload,
-  Check,
   Sparkles,
 } from 'lucide-react';
 import { BusinessConfig } from '../types';
+import { fixImagePath } from '../utils/workSanitizer';
 
 interface HeroProps {
   business: BusinessConfig;
   onOpenBooking: () => void;
   onExploreServices: () => void;
   customHeroImage?: string;
-  onUpdateHeroImage?: (url: string) => void;
   exactPhoto?: string;
-  onUploadExactPhoto?: (file: File) => void;
 }
 
 export const Hero: React.FC<HeroProps> = ({
@@ -35,46 +30,36 @@ export const Hero: React.FC<HeroProps> = ({
   onOpenBooking,
   onExploreServices,
   customHeroImage,
-  onUpdateHeroImage,
   exactPhoto,
-  onUploadExactPhoto,
 }) => {
-  const [showImageSelector, setShowImageSelector] = useState(false);
-  const [customInputUrl, setCustomInputUrl] = useState('');
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // If user uploaded an exact photo, use it; otherwise fallback to default
+  // If user uploaded an exact photo, use it; otherwise fallback to default public banner
   const heroImageSrc =
-    exactPhoto || customHeroImage || '/src/assets/images/ebrima_hero_banner_1792275875245.jpg';
+    fixImagePath(exactPhoto) ||
+    fixImagePath(customHeroImage) ||
+    '/images/ebrima_hero_banner_1792275875245.jpg';
+
+  const rightColumnPhotoSrc =
+    fixImagePath(exactPhoto) || '/images/ebrima_working_window_1792275182056.jpg';
 
   const whatsappUrl = `https://wa.me/${business.whatsappRaw}?text=${encodeURIComponent(
     'Hello Ebrima Electrical Services, I need electrical installation / repair work in The Gambia. Please provide me with more information.'
   )}`;
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && onUploadExactPhoto) {
-      onUploadExactPhoto(file);
-    }
-  };
-
-  const handleApplyCustomUrl = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (customInputUrl.trim() && onUpdateHeroImage) {
-      onUpdateHeroImage(customInputUrl.trim());
-      setShowImageSelector(false);
-      setCustomInputUrl('');
-    }
-  };
-
   return (
-    <section className="relative overflow-hidden bg-slate-950 min-h-[600px] sm:min-h-[660px] lg:min-h-[720px] flex items-center border-b border-slate-900">
+    <section className="relative overflow-hidden bg-slate-950 min-h-[560px] sm:min-h-[640px] lg:min-h-[700px] flex items-center border-b border-slate-900">
       {/* Full-Bleed Panoramic Background Image */}
       <div className="absolute inset-0 z-0">
         <img
           src={heroImageSrc}
           alt="Ebrima Electrical Services - On Site Work"
-          className="w-full h-full object-cover object-right sm:object-center"
+          className="w-full h-full object-cover object-right sm:object-center select-none"
+          loading="eager"
+          decoding="async"
+          onError={(e) => {
+            if (e.currentTarget.src !== '/images/ebrima_hero_banner_1792275875245.jpg') {
+              e.currentTarget.src = '/images/ebrima_hero_banner_1792275875245.jpg';
+            }
+          }}
           referrerPolicy="no-referrer"
         />
 
@@ -159,109 +144,37 @@ export const Hero: React.FC<HeroProps> = ({
             </div>
           </div>
 
-          {/* Right Column: Ebrima's Exact Photo Frame (If present, shows in full glory) */}
-          <div className="lg:col-span-4 flex justify-center lg:justify-end">
-            <div className="relative group max-w-xs sm:max-w-sm rounded-3xl p-2 bg-gradient-to-b from-slate-800/80 via-slate-900 to-slate-950 border border-slate-700/80 shadow-2xl backdrop-blur-md">
+          {/* Right Column: Ebrima's Exact Photo Frame (Responsive card with subtle depth) */}
+          <div className="lg:col-span-4 flex justify-center lg:justify-end w-full">
+            <div className="relative group w-full max-w-xs sm:max-w-sm rounded-3xl p-2 bg-gradient-to-b from-slate-800/80 via-slate-900 to-slate-950 border border-slate-700/80 shadow-2xl backdrop-blur-md">
               <div className="relative rounded-2xl overflow-hidden aspect-[3/4] bg-slate-900">
                 <img
-                  src={exactPhoto || '/src/assets/images/ebrima_working_window_1792275182056.jpg'}
+                  src={rightColumnPhotoSrc}
                   alt="Ebrima on site performing electrical circuit breaker wiring"
-                  className="w-full h-full object-cover object-top"
+                  className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                  loading="lazy"
+                  onError={(e) => {
+                    if (e.currentTarget.src !== '/images/ebrima_working_window_1792275182056.jpg') {
+                      e.currentTarget.src = '/images/ebrima_working_window_1792275182056.jpg';
+                    }
+                  }}
                   referrerPolicy="no-referrer"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent" />
 
                 <div className="absolute top-3 left-3 bg-slate-950/90 backdrop-blur-md px-3 py-1 rounded-full border border-amber-400/40 text-[11px] font-bold text-amber-300 flex items-center gap-1.5 shadow">
                   <Sparkles className="w-3.5 h-3.5 text-amber-400" />
                   <span>Ebrima at Work</span>
                 </div>
 
-                <div className="absolute bottom-3 left-3 right-3 text-left">
-                  <div className="text-white font-bold text-sm">Circuit Breaker Assembly</div>
-                  <div className="text-slate-300 text-xs">On site in The Gambia</div>
+                <div className="absolute bottom-3.5 left-3.5 right-3.5 text-left">
+                  <div className="text-white font-bold text-sm sm:text-base">Circuit Breaker Assembly</div>
+                  <div className="text-amber-400 text-xs font-medium">On site across The Gambia</div>
                 </div>
-              </div>
-
-              {/* Upload Exact Photo Button */}
-              <div className="mt-2 p-2 bg-slate-900/90 rounded-xl border border-slate-800 flex items-center justify-between gap-2">
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-bold transition-all shadow-sm"
-                >
-                  <Upload className="w-3.5 h-3.5" />
-                  <span>Select Ebrima Photo from Device</span>
-                </button>
               </div>
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Hidden File Input */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        onChange={handleFileChange}
-        className="hidden"
-      />
-
-      {/* Floating Image Changer Tool */}
-      <div className="absolute bottom-4 right-4 z-20">
-        {!showImageSelector ? (
-          <button
-            onClick={() => setShowImageSelector(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-950/80 hover:bg-slate-900 text-[11px] font-medium text-slate-400 hover:text-amber-400 border border-slate-800 backdrop-blur-md transition-colors"
-            title="Swap hero background image"
-          >
-            <Camera className="w-3.5 h-3.5" />
-            <span>Options</span>
-          </button>
-        ) : (
-          <div className="bg-slate-900 border border-slate-700 p-3 rounded-2xl shadow-2xl w-80 space-y-2 text-xs text-white">
-            <div className="flex items-center justify-between font-bold text-amber-400">
-              <span>Photo Options</span>
-              <button
-                onClick={() => setShowImageSelector(false)}
-                className="text-slate-400 hover:text-white"
-              >
-                &times;
-              </button>
-            </div>
-            <p className="text-[11px] text-slate-300">
-              Pick from device or paste image URL:
-            </p>
-
-            <button
-              type="button"
-              onClick={() => {
-                fileInputRef.current?.click();
-                setShowImageSelector(false);
-              }}
-              className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-amber-400 text-slate-950 font-bold text-xs"
-            >
-              <Upload className="w-4 h-4" />
-              <span>Upload Photo from Device</span>
-            </button>
-
-            <form onSubmit={handleApplyCustomUrl} className="flex gap-2 pt-1">
-              <input
-                type="text"
-                placeholder="Paste Image URL here..."
-                value={customInputUrl}
-                onChange={(e) => setCustomInputUrl(e.target.value)}
-                className="flex-1 px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-white"
-              />
-              <button
-                type="submit"
-                className="px-3 py-1.5 rounded-lg bg-slate-800 text-amber-400 hover:bg-amber-400 hover:text-slate-950 font-bold text-xs"
-              >
-                Apply
-              </button>
-            </form>
-          </div>
-        )}
       </div>
     </section>
   );

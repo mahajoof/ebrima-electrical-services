@@ -60,7 +60,7 @@ export const FloatingWhatsApp: React.FC<FloatingWhatsAppProps> = ({ business }) 
           {/* Body */}
           <div className="p-4 bg-slate-950 space-y-3 text-xs">
             <div className="p-3 rounded-2xl bg-slate-900 border border-slate-800 text-slate-300 leading-relaxed">
-              Hello! 👋 Looking for dependable electrical repairs, wiring, or lighting in Banjul? Tap below to chat directly with us on WhatsApp.
+              Hello! 👋 Looking for dependable electrical repairs, wiring, or lighting in The Gambia? Tap below to chat directly with us on WhatsApp.
             </div>
 
             <div className="p-2.5 rounded-xl bg-emerald-950/40 border border-emerald-500/20 text-emerald-300 text-[11px]">

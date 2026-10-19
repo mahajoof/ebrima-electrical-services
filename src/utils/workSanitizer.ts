@@ -183,23 +183,35 @@ export function getCleanWorkDescription(
   return desc.trim();
 }
 
+export function fixImagePath(imagePath?: string): string {
+  if (!imagePath) return '/images/ebrima_working_window_1792275182056.jpg';
+  if (imagePath.startsWith('/src/assets/images/')) {
+    return imagePath.replace('/src/assets/images/', '/images/');
+  }
+  return imagePath;
+}
+
 /**
  * Ensures a gallery item has professional, authentic titles and descriptions
- * reflecting the actual electrical work on site instead of WhatsApp filenames or codes.
+ * reflecting the actual electrical work on site instead of WhatsApp filenames or codes,
+ * and fixes any /src/assets/ image paths to valid public /images/ paths.
  */
 export function cleanGalleryItem(item: GalleryItem, index = 0): GalleryItem {
   const title = getCleanWorkTitle(item.title, item.category, index);
   const description = getCleanWorkDescription(item.description, item.category, index);
+  const image = fixImagePath(item.image);
 
   return {
     ...item,
+    image,
     title,
     description,
   };
 }
 
 /**
- * Sanitizes an array of gallery items, stripping any residual WhatsApp 2026 image strings.
+ * Sanitizes an array of gallery items, stripping any residual WhatsApp 2026 image strings
+ * and correcting broken image paths.
  */
 export function cleanGalleryList(items: GalleryItem[]): GalleryItem[] {
   return items.map((item, idx) => cleanGalleryItem(item, idx));

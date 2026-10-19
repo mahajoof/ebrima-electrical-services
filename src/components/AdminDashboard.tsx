@@ -39,6 +39,12 @@ import {
   ElectricalService,
   GalleryItem,
 } from '../types';
+import {
+  getCleanWorkTitle,
+  getCleanWorkDescription,
+  cleanGalleryItem,
+  fixImagePath,
+} from '../utils/workSanitizer';
 
 interface AdminDashboardProps {
   isOpen: boolean;
@@ -134,14 +140,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     e.preventDefault();
     if (!newGalTitle.trim() || !newGalImage.trim()) return;
 
-    const newItem: GalleryItem = {
+    const title = getCleanWorkTitle(newGalTitle.trim(), newGalCategory, gallery.length);
+    const description = getCleanWorkDescription(newGalDesc.trim(), newGalCategory, gallery.length);
+
+    const newItem: GalleryItem = cleanGalleryItem({
       id: `gal-${Date.now().toString().slice(-4)}`,
-      title: newGalTitle.trim(),
+      title,
       category: newGalCategory,
       image: newGalImage.trim(),
-      description: newGalDesc.trim() || 'Work completed in Banjul.',
+      description,
       dateAdded: new Date().toISOString().split('T')[0],
-    };
+    });
 
     onAddGalleryItem(newItem);
     setNewGalTitle('');
@@ -756,24 +765,38 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
                   {/* Existing Photos Grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                    {gallery.map((g) => (
-                      <div key={g.id} className="rounded-xl bg-slate-950 border border-slate-800 overflow-hidden flex flex-col justify-between">
-                        <div className="aspect-[4/3] bg-slate-900 relative">
-                          <img src={g.image} alt={g.title} className="w-full h-full object-cover" />
-                          <button
-                            onClick={() => onDeleteGalleryItem(g.id)}
-                            className="absolute top-2 right-2 p-1.5 rounded-lg bg-slate-950/80 text-red-400 hover:bg-red-500 hover:text-white transition-colors"
-                            title="Delete Photo"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                    {gallery.map((g, idx) => {
+                      const cleanTitle = getCleanWorkTitle(g.title, g.category, idx);
+                      const cleanDesc = getCleanWorkDescription(g.description, g.category, idx);
+                      return (
+                        <div key={g.id} className="rounded-xl bg-slate-950 border border-slate-800 overflow-hidden flex flex-col justify-between">
+                          <div className="aspect-[4/3] bg-slate-900 relative">
+                            <img
+                              src={fixImagePath(g.image)}
+                              alt={cleanTitle}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                if (e.currentTarget.src !== '/images/ebrima_electrical_hero_1792275168817.jpg') {
+                                  e.currentTarget.src = '/images/ebrima_electrical_hero_1792275168817.jpg';
+                                }
+                              }}
+                            />
+                            <button
+                              onClick={() => onDeleteGalleryItem(g.id)}
+                              className="absolute top-2 right-2 p-1.5 rounded-lg bg-slate-950/80 text-red-400 hover:bg-red-500 hover:text-white transition-colors"
+                              title="Delete Photo"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                          <div className="p-3">
+                            <span className="text-[10px] text-amber-400 font-semibold">{g.category}</span>
+                            <h5 className="font-bold text-white text-xs line-clamp-1 mt-0.5">{cleanTitle}</h5>
+                            <p className="text-[11px] text-slate-400 mt-1 line-clamp-2 leading-relaxed">{cleanDesc}</p>
+                          </div>
                         </div>
-                        <div className="p-3">
-                          <span className="text-[10px] text-amber-400 font-semibold">{g.category}</span>
-                          <h5 className="font-bold text-white text-xs line-clamp-1 mt-0.5">{g.title}</h5>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}

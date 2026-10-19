@@ -19,6 +19,13 @@ import {
   BookingRequest,
   ContactEnquiry,
 } from './types';
+import {
+  cleanGalleryList,
+  cleanGalleryItem,
+  getCleanWorkTitle,
+  getCleanWorkDescription,
+  fixImagePath,
+} from './utils/workSanitizer';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { ServicesSection } from './components/ServicesSection';
@@ -62,7 +69,7 @@ export default function App() {
   const [gallery, setGallery] = useState<GalleryItem[]>(() => {
     try {
       const saved = localStorage.getItem('ebrima_gallery');
-      return saved ? JSON.parse(saved) : INITIAL_GALLERY;
+      return saved ? cleanGalleryList(JSON.parse(saved)) : INITIAL_GALLERY;
     } catch {
       return INITIAL_GALLERY;
     }
@@ -95,16 +102,17 @@ export default function App() {
   const [heroImage, setHeroImage] = useState<string>(() => {
     try {
       const saved = localStorage.getItem('ebrima_hero_image');
-      return saved || '/src/assets/images/ebrima_hero_banner_1792275875245.jpg';
+      return saved ? fixImagePath(saved) : '/images/ebrima_hero_banner_1792275875245.jpg';
     } catch {
-      return '/src/assets/images/ebrima_hero_banner_1792275875245.jpg';
+      return '/images/ebrima_hero_banner_1792275875245.jpg';
     }
   });
 
   // Exact Photo State from user (Persisted)
   const [exactPhoto, setExactPhoto] = useState<string>(() => {
     try {
-      return localStorage.getItem('ebrima_exact_photo') || '';
+      const saved = localStorage.getItem('ebrima_exact_photo');
+      return saved ? fixImagePath(saved) : '';
     } catch {
       return '';
     }
@@ -128,7 +136,8 @@ export default function App() {
 
   useEffect(() => {
     try {
-      localStorage.setItem('ebrima_gallery', JSON.stringify(gallery));
+      const cleaned = cleanGalleryList(gallery);
+      localStorage.setItem('ebrima_gallery', JSON.stringify(cleaned));
     } catch (e) {
       console.error(e);
     }
@@ -175,57 +184,20 @@ export default function App() {
       if (dataUrl) {
         setExactPhoto(dataUrl);
         setHeroImage(dataUrl);
-        setGallery((prev) => [
-          {
-            id: `gal-exact-${Date.now()}`,
-            title: 'Ebrima on Site - Circuit Breaker Wiring (Original Photo)',
-            category: 'Electrical Wiring',
-            image: dataUrl,
-            description: 'Original photograph: Ebrima performing electrical installation work on site in The Gambia.',
-            dateAdded: new Date().toISOString().split('T')[0],
-          },
-          ...prev,
-        ]);
+        const newItem = cleanGalleryItem({
+          id: `gal-exact-${Date.now()}`,
+          title: 'Ebrima On Site: Miniature Circuit Breaker Installation & Wiring',
+          category: 'Electrical Wiring',
+          image: dataUrl,
+          description:
+            'On-site electrical work: Ebrima assembling, wiring, and testing miniature circuit breakers with red feed lines, precision terminal tightening, and safety grounding in The Gambia.',
+          dateAdded: new Date().toISOString().split('T')[0],
+        });
+        setGallery((prev) => [newItem, ...prev]);
       }
     };
     reader.readAsDataURL(file);
   };
-
-  // Global Drag/Drop and Paste listener so user can drop the photo anywhere
-  useEffect(() => {
-    const handlePaste = (e: ClipboardEvent) => {
-      const items = e.clipboardData?.items;
-      if (items) {
-        for (let i = 0; i < items.length; i++) {
-          if (items[i].type.startsWith('image/')) {
-            const file = items[i].getAsFile();
-            if (file) handleUploadExactPhoto(file);
-          }
-        }
-      }
-    };
-
-    const handleDrop = (e: DragEvent) => {
-      e.preventDefault();
-      if (e.dataTransfer?.files?.[0] && e.dataTransfer.files[0].type.startsWith('image/')) {
-        handleUploadExactPhoto(e.dataTransfer.files[0]);
-      }
-    };
-
-    const handleDragOver = (e: DragEvent) => {
-      e.preventDefault();
-    };
-
-    window.addEventListener('paste', handlePaste);
-    window.addEventListener('drop', handleDrop);
-    window.addEventListener('dragover', handleDragOver);
-
-    return () => {
-      window.removeEventListener('paste', handlePaste);
-      window.removeEventListener('drop', handleDrop);
-      window.removeEventListener('dragover', handleDragOver);
-    };
-  }, []);
 
   // Handler functions
   const handleOpenBooking = (serviceId?: string) => {
@@ -277,7 +249,15 @@ export default function App() {
   };
 
   const handleAddGalleryItem = (item: GalleryItem) => {
-    setGallery((prev) => [item, ...prev]);
+    const cleaned = cleanGalleryItem(item, gallery.length);
+    setGallery((prev) => [cleaned, ...prev]);
+  };
+
+  const handleUpdateGalleryItem = (item: GalleryItem) => {
+    const cleaned = cleanGalleryItem(item);
+    setGallery((prev) =>
+      prev.map((g) => (g.id === cleaned.id ? cleaned : g))
+    );
   };
 
   const handleDeleteGalleryItem = (id: string) => {
@@ -320,9 +300,7 @@ export default function App() {
               onOpenBooking={() => handleOpenBooking()}
               onExploreServices={() => setActiveTab('services')}
               customHeroImage={heroImage}
-              onUpdateHeroImage={setHeroImage}
               exactPhoto={exactPhoto}
-              onUploadExactPhoto={handleUploadExactPhoto}
             />
 
             {/* Behind the Scenes Spotlight Strip */}
@@ -407,7 +385,14 @@ export default function App() {
                         <img
                           src={svc.image}
                           alt={svc.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 select-none"
+                          loading="lazy"
+                          onError={(e) => {
+                            if (e.currentTarget.src !== '/images/ebrima_electrical_hero_1792275168817.jpg') {
+                              e.currentTarget.src = '/images/ebrima_electrical_hero_1792275168817.jpg';
+                            }
+                          }}
+                          referrerPolicy="no-referrer"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
                       </div>
@@ -475,32 +460,43 @@ export default function App() {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {gallery.slice(0, 3).map((item) => (
-                    <div
-                      key={item.id}
-                      onClick={() => setActiveTab('gallery')}
-                      className="cursor-pointer rounded-2xl bg-slate-900 border border-slate-800 overflow-hidden hover:border-amber-400/40 transition-all group"
-                    >
-                      <div className="relative aspect-[4/3] bg-slate-950 overflow-hidden">
-                        <img
-                          src={item.image}
-                          alt={item.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                        <div className="absolute top-3 left-3 bg-slate-950/80 px-2.5 py-1 rounded-lg text-[11px] font-semibold text-amber-300">
-                          {item.category}
+                  {gallery.slice(0, 3).map((item, idx) => {
+                    const cleanTitle = getCleanWorkTitle(item.title, item.category, idx);
+                    const cleanDesc = getCleanWorkDescription(item.description, item.category, idx);
+                    return (
+                      <div
+                        key={item.id}
+                        onClick={() => setActiveTab('gallery')}
+                        className="cursor-pointer rounded-2xl bg-slate-900 border border-slate-800 overflow-hidden hover:border-amber-400/40 transition-all group"
+                      >
+                        <div className="relative aspect-[4/3] bg-slate-950 overflow-hidden">
+                          <img
+                            src={fixImagePath(item.image)}
+                            alt={cleanTitle}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 select-none"
+                            loading="lazy"
+                            onError={(e) => {
+                              if (e.currentTarget.src !== '/images/ebrima_electrical_hero_1792275168817.jpg') {
+                                e.currentTarget.src = '/images/ebrima_electrical_hero_1792275168817.jpg';
+                              }
+                            }}
+                            referrerPolicy="no-referrer"
+                          />
+                          <div className="absolute top-3 left-3 bg-slate-950/80 px-2.5 py-1 rounded-lg text-[11px] font-semibold text-amber-300">
+                            {item.category}
+                          </div>
+                        </div>
+                        <div className="p-4">
+                          <h4 className="font-bold text-white text-sm line-clamp-1 group-hover:text-amber-400 transition-colors">
+                            {cleanTitle}
+                          </h4>
+                          <p className="text-xs text-slate-300 mt-1 line-clamp-2 leading-relaxed">
+                            {cleanDesc}
+                          </p>
                         </div>
                       </div>
-                      <div className="p-4">
-                        <h4 className="font-bold text-white text-sm line-clamp-1 group-hover:text-amber-400 transition-colors">
-                          {item.title}
-                        </h4>
-                        <p className="text-xs text-slate-400 mt-1 line-clamp-2">
-                          {item.description}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </section>
@@ -564,6 +560,7 @@ export default function App() {
             onOpenBooking={() => handleOpenBooking()}
             onAddGalleryItem={handleAddGalleryItem}
             onDeleteGalleryItem={handleDeleteGalleryItem}
+            onUpdateGalleryItem={handleUpdateGalleryItem}
           />
         )}
 
@@ -573,7 +570,6 @@ export default function App() {
             business={business}
             onOpenBooking={() => handleOpenBooking()}
             exactPhoto={exactPhoto}
-            onUploadExactPhoto={handleUploadExactPhoto}
           />
         )}
 

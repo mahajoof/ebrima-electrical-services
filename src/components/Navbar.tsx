@@ -54,7 +54,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   const whatsappUrl = `https://wa.me/${business.whatsappRaw}?text=${encodeURIComponent(
-    'Hello Ebrima Electrical Services, I am interested in your electrical installation and repair services in Banjul. Please provide me with more information.'
+    'Hello Ebrima Electrical Services, I am interested in your electrical installation and repair services in The Gambia. Please provide me with more information.'
   )}`;
 
   return (

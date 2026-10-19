@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useRef } from 'react';
+import React from 'react';
 import {
   ShieldCheck,
   CheckCircle2,
@@ -14,37 +14,27 @@ import {
   HeartHandshake,
   MessageCircle,
   Sparkles,
-  Upload,
 } from 'lucide-react';
 import { BusinessConfig } from '../types';
+import { fixImagePath } from '../utils/workSanitizer';
 
 interface AboutSectionProps {
   business: BusinessConfig;
   onOpenBooking: () => void;
   exactPhoto?: string;
-  onUploadExactPhoto?: (file: File) => void;
 }
 
 export const AboutSection: React.FC<AboutSectionProps> = ({
   business,
   onOpenBooking,
   exactPhoto,
-  onUploadExactPhoto,
 }) => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   const whatsappUrl = `https://wa.me/${business.whatsappRaw}?text=${encodeURIComponent(
     'Hello Ebrima Electrical Services, I would like to learn more about your services and discuss an electrical project in The Gambia.'
   )}`;
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && onUploadExactPhoto) {
-      onUploadExactPhoto(file);
-    }
-  };
-
-  const imageSrc = exactPhoto || '/src/assets/images/ebrima_working_window_1792275182056.jpg';
+  const imageSrc =
+    fixImagePath(exactPhoto) || '/images/ebrima_working_window_1792275182056.jpg';
 
   return (
     <section className="py-16 sm:py-24 bg-slate-950 border-b border-slate-900">
@@ -56,7 +46,13 @@ export const AboutSection: React.FC<AboutSectionProps> = ({
               <img
                 src={imageSrc}
                 alt="Ebrima on site installing circuit breakers and electrical wiring in The Gambia"
-                className="w-full h-96 sm:h-[480px] object-cover object-top"
+                className="w-full h-80 sm:h-96 md:h-[460px] object-cover object-top select-none"
+                loading="lazy"
+                onError={(e) => {
+                  if (e.currentTarget.src !== '/images/ebrima_working_window_1792275182056.jpg') {
+                    e.currentTarget.src = '/images/ebrima_working_window_1792275182056.jpg';
+                  }
+                }}
                 referrerPolicy="no-referrer"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
@@ -75,25 +71,6 @@ export const AboutSection: React.FC<AboutSectionProps> = ({
                   Ebrima travels to any place, town, or village in The Gambia to provide dependable, professional electrical installation, maintenance, and fault repair.
                 </p>
               </div>
-            </div>
-
-            {/* Quick Button to Upload Exact Photo */}
-            <div className="flex justify-center">
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-850 text-slate-300 hover:text-amber-400 border border-slate-800 text-xs font-medium transition-colors"
-              >
-                <Upload className="w-3.5 h-3.5" />
-                <span>Upload Original Photo</span>
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                className="hidden"
-              />
             </div>
           </div>
 

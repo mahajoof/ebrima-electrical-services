@@ -21,10 +21,10 @@ export const Testimonials: React.FC<TestimonialsProps> = ({ reviews }) => {
             <span>Customer Feedback</span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-            What Our Clients in Banjul Say
+            What Our Clients Say
           </h2>
           <p className="mt-4 text-base text-slate-300 leading-relaxed">
-            Real feedback from local residents, shop owners, and property managers who have trusted Ebrima Electrical Services for installations and repair jobs.
+            Real feedback from residents, shop owners, and property managers who have trusted Ebrima Electrical Services for installations and repair jobs across The Gambia.
           </p>
         </div>
 

@@ -34,7 +34,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
   const [formError, setFormError] = useState('');
 
   const whatsappDirectUrl = `https://wa.me/${business.whatsappRaw}?text=${encodeURIComponent(
-    'Hello Ebrima Electrical Services, I would like to get in touch regarding electrical services in Banjul.'
+    'Hello Ebrima Electrical Services, I would like to get in touch regarding electrical services in The Gambia.'
   )}`;
 
   const handleSubmit = (e: React.FormEvent) => {
